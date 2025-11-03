@@ -98,7 +98,6 @@ const activeSection = computed(() => {
 
 .answer-block {
   padding: 24px;
-  border: 1px solid var(--color-border);
   border-radius: 12px;
   background: var(--color-surface);
 }
