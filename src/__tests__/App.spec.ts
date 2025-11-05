@@ -15,7 +15,7 @@ describe('App', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Interview Trainer')
+    expect(wrapper.text()).toContain('drill(j)(s).ts')
     expect(wrapper.text()).toContain('Train')
     expect(wrapper.text()).toContain('Docs')
   })

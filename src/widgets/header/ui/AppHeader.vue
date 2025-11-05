@@ -2,13 +2,16 @@
 import { RouterLink } from 'vue-router'
 
 import { useTheme } from '@/shared/lib/theme'
+import { LogoMark } from '@/shared/ui/logo'
 
 const { theme, toggleTheme } = useTheme()
 </script>
 
 <template>
   <header class="header">
-    <RouterLink to="/docs" class="logo">Interview Trainer</RouterLink>
+    <RouterLink to="/docs" class="logo" aria-label="Drill home">
+      <LogoMark class="logo-icon" />
+    </RouterLink>
     <div class="header-actions">
       <nav class="nav">
         <RouterLink to="/train" class="nav-link">Train</RouterLink>
@@ -40,10 +43,17 @@ const { theme, toggleTheme } = useTheme()
 }
 
 .logo {
-  font-size: 1rem;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--color-text);
   text-decoration: none;
+}
+
+.logo-icon {
+  width: auto;
+  height: 22px;
+  flex-shrink: 0;
 }
 
 .header-actions {

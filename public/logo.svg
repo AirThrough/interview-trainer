@@ -1,0 +1,14 @@
+<svg viewBox="0 0 132 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <text
+    x="0"
+    y="16"
+    font-family="ui-monospace, SF Mono, Menlo, Monaco, Consolas, monospace"
+    font-size="15"
+    font-weight="600"
+    letter-spacing="-0.02em"
+  >
+    <tspan fill="#e8eaef">drill</tspan>
+    <tspan fill="#8b93a7" font-weight="500">(j)(s)</tspan>
+    <tspan fill="#6c9eff" font-weight="600">.ts</tspan>
+  </text>
+</svg>
