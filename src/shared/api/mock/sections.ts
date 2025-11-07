@@ -1,6 +1,6 @@
 import type { Section } from '@/entities/section'
 
-export const mockSections: Section[] = [
+export const initialSections: Section[] = [
   {
     id: 'javascript-fundamentals',
     name: 'JavaScript Fundamentals',

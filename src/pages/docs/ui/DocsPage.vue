@@ -1,28 +1,181 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
+import { useSectionsStore } from '@/entities/section'
+import { useTasksStore } from '@/entities/task'
+import { SectionForm } from '@/features/section-form'
+import { TaskForm } from '@/features/task-form'
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import { DocsSidebar } from '@/widgets/docs-sidebar'
-import { getSectionById, getTaskById, mockSections, mockTasks } from '@/shared/api/mock'
+
+type PanelMode = 'view' | 'section-form' | 'task-form'
+
+type ConfirmRequest = {
+  title: string
+  message: string
+  confirmLabel: string
+  onConfirm: () => Promise<void>
+}
 
 const route = useRoute()
+const router = useRouter()
+const sectionsStore = useSectionsStore()
+const tasksStore = useTasksStore()
+
+const panelMode = ref<PanelMode>('view')
+const editingSectionId = ref<string | null>(null)
+const editingTaskId = ref<string | null>(null)
+const defaultTaskSectionId = ref<string | null>(null)
+const confirmOpen = ref(false)
+const confirmRequest = ref<ConfirmRequest | null>(null)
+
+onMounted(() => {
+  sectionsStore.ensureLoaded()
+  tasksStore.ensureLoaded()
+})
+
+watch(
+  () => route.params.taskId,
+  () => {
+    if (panelMode.value !== 'view') {
+      closeForm()
+    }
+  },
+)
 
 const activeTask = computed(() => {
   const taskId = route.params.taskId as string | undefined
-  return taskId ? getTaskById(taskId) : undefined
+  return taskId ? tasksStore.getById(taskId) : undefined
 })
 
 const activeSection = computed(() => {
   if (!activeTask.value) return undefined
-  return getSectionById(activeTask.value.sectionId)
+  return sectionsStore.getById(activeTask.value.sectionId)
 })
+
+function openSectionForm(sectionId?: string) {
+  panelMode.value = 'section-form'
+  editingSectionId.value = sectionId ?? null
+}
+
+function openTaskForm(taskId?: string, sectionId?: string) {
+  panelMode.value = 'task-form'
+  editingTaskId.value = taskId ?? null
+  defaultTaskSectionId.value = sectionId ?? null
+}
+
+function closeForm() {
+  panelMode.value = 'view'
+  editingSectionId.value = null
+  editingTaskId.value = null
+  defaultTaskSectionId.value = null
+}
+
+function onSectionSaved() {
+  closeForm()
+}
+
+function onTaskSaved(taskId: string) {
+  closeForm()
+  router.push({ name: 'docs-task', params: { taskId } })
+}
+
+function openConfirm(request: ConfirmRequest) {
+  confirmRequest.value = request
+  confirmOpen.value = true
+}
+
+function closeConfirm() {
+  confirmOpen.value = false
+  confirmRequest.value = null
+}
+
+async function handleConfirm() {
+  const request = confirmRequest.value
+  if (!request) return
+
+  await request.onConfirm()
+  closeConfirm()
+}
+
+function requestDeleteSection(sectionId: string) {
+  const section = sectionsStore.getById(sectionId)
+  if (!section) return
+
+  openConfirm({
+    title: 'Delete section',
+    message: `Delete "${section.name}" and all tasks inside it? This cannot be undone.`,
+    confirmLabel: 'Delete section',
+    onConfirm: () => deleteSectionConfirmed(sectionId),
+  })
+}
+
+function requestDeleteTask(taskId: string) {
+  const task = tasksStore.getById(taskId)
+  if (!task) return
+
+  openConfirm({
+    title: 'Delete task',
+    message: `Delete "${task.question}"? This cannot be undone.`,
+    confirmLabel: 'Delete task',
+    onConfirm: () => deleteTaskConfirmed(taskId),
+  })
+}
+
+async function deleteSectionConfirmed(sectionId: string) {
+  await sectionsStore.remove(sectionId)
+  tasksStore.removeBySectionId(sectionId)
+
+  if (editingSectionId.value === sectionId) {
+    closeForm()
+  }
+
+  if (activeTask.value?.sectionId === sectionId) {
+    router.push({ name: 'docs' })
+  }
+}
+
+async function deleteTaskConfirmed(taskId: string) {
+  await tasksStore.remove(taskId)
+
+  if (editingTaskId.value === taskId) {
+    closeForm()
+  }
+
+  if (route.params.taskId === taskId) {
+    router.push({ name: 'docs' })
+  }
+}
 </script>
 
 <template>
   <div class="docs-page">
-    <DocsSidebar :sections="mockSections" :tasks="mockTasks" />
+    <DocsSidebar
+      :sections="sectionsStore.items"
+      :tasks="tasksStore.items"
+      @create-section="openSectionForm()"
+      @edit-section="openSectionForm"
+      @delete-section="requestDeleteSection"
+      @create-task="openTaskForm(undefined, $event)"
+      @edit-task="openTaskForm($event)"
+      @delete-task="requestDeleteTask"
+    />
     <main class="content">
-      <div v-if="activeTask" class="task-view">
+      <SectionForm
+        v-if="panelMode === 'section-form'"
+        :section-id="editingSectionId"
+        @saved="onSectionSaved"
+        @cancelled="closeForm"
+      />
+      <TaskForm
+        v-else-if="panelMode === 'task-form'"
+        :task-id="editingTaskId"
+        :default-section-id="defaultTaskSectionId"
+        @saved="onTaskSaved"
+        @cancelled="closeForm"
+      />
+      <div v-else-if="activeTask" class="task-view">
         <div v-if="activeSection" class="task-meta">
           <span class="section-label">{{ activeSection.name }}</span>
           <div class="tags">
@@ -40,6 +193,16 @@ const activeSection = computed(() => {
         <p class="empty-text">Select a task from the sidebar to view its question and answer.</p>
       </div>
     </main>
+
+    <ConfirmDialog
+      :open="confirmOpen"
+      :title="confirmRequest?.title ?? ''"
+      :message="confirmRequest?.message ?? ''"
+      :confirm-label="confirmRequest?.confirmLabel"
+      destructive
+      @confirm="handleConfirm"
+      @cancel="closeConfirm"
+    />
   </div>
 </template>
 

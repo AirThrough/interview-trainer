@@ -1,16 +1,21 @@
-import { mockSections } from './sections'
-import { mockTasks } from './tasks'
+export {
+  createSection,
+  deleteSection,
+  fetchSectionById,
+  fetchSections,
+  updateSection,
+} from './sections-api'
+export type { CreateSectionPayload, UpdateSectionPayload } from './sections-api'
 
-export { mockSections, mockTasks }
+export {
+  createTask,
+  deleteTask,
+  fetchTaskById,
+  fetchTasks,
+  fetchTasksBySectionId,
+  updateTask,
+} from './tasks-api'
+export type { CreateTaskPayload, UpdateTaskPayload } from './tasks-api'
 
-export function getTasksBySectionId(sectionId: string) {
-  return mockTasks.filter((task) => task.sectionId === sectionId)
-}
-
-export function getTaskById(taskId: string) {
-  return mockTasks.find((task) => task.id === taskId)
-}
-
-export function getSectionById(sectionId: string) {
-  return mockSections.find((section) => section.id === sectionId)
-}
+export { initialSections } from './sections'
+export { initialTasks } from './tasks'

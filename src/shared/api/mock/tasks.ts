@@ -1,6 +1,6 @@
 import type { Task } from '@/entities/task'
 
-export const mockTasks: Task[] = [
+export const initialTasks: Task[] = [
   {
     id: 'js-closure',
     sectionId: 'javascript-fundamentals',
