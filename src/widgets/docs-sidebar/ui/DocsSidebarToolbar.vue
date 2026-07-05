@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 
+import IconClose from '@/shared/ui/icons/IconClose.vue'
 import IconPlus from '@/shared/ui/icons/IconPlus.vue'
+import IconSearch from '@/shared/ui/icons/IconSearch.vue'
+
+const query = defineModel<string>('query', { required: true })
 
 const emit = defineEmits<{
   'create-section': []
@@ -11,7 +15,25 @@ const emit = defineEmits<{
 
 <template>
   <div class="sidebar-toolbar">
-    <p class="sidebar-label">Browse</p>
+    <label class="search-field">
+      <IconSearch class="search-icon" />
+      <input
+        v-model="query"
+        class="search-input"
+        type="search"
+        placeholder="Search sections & tasks"
+        aria-label="Search sections and tasks"
+      />
+      <button
+        v-if="query"
+        type="button"
+        class="search-clear"
+        aria-label="Clear search"
+        @click="query = ''"
+      >
+        <IconClose />
+      </button>
+    </label>
     <Menu v-slot="{ open }" as="div" class="add-menu">
       <MenuButton class="add-menu-btn" aria-label="Add">
         <IconPlus />
@@ -56,22 +78,79 @@ const emit = defineEmits<{
 .sidebar-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   margin-bottom: 14px;
 }
 
-.sidebar-label {
-  margin: 0 0 0 4px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--color-surface-hover);
   color: var(--color-text-muted);
+}
+
+.search-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration {
+  display: none;
+}
+
+.search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.search-clear:hover {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+.search-clear :deep(svg) {
+  width: 12px;
+  height: 12px;
 }
 
 .add-menu {
   position: relative;
+  flex-shrink: 0;
 }
 
 .add-menu-btn {
@@ -79,11 +158,11 @@ const emit = defineEmits<{
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 28px;
+  height: 32px;
   min-width: 44px;
   padding: 0 10px 0 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--color-surface-hover);
   color: var(--color-text-muted);
   cursor: pointer;

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import { useRoute } from 'vue-router'
 
 import type { Section } from '@/entities/section'
 import type { Task } from '@/entities/task'
 
 import { useFloatActions } from '../model/useFloatActions'
+import { useSidebarSearch } from '../model/useSidebarSearch'
 import DocsSidebarFloatActions from './DocsSidebarFloatActions.vue'
 import DocsSidebarSection from './DocsSidebarSection.vue'
 import DocsSidebarToolbar from './DocsSidebarToolbar.vue'
@@ -27,6 +28,11 @@ const emit = defineEmits<{
 const route = useRoute()
 const expandedSections = ref<Set<string>>(new Set(props.sections.map((section) => section.id)))
 
+const { query, isSearching, filteredSections, filteredTasksForSection } = useSidebarSearch(
+  toRef(props, 'sections'),
+  toRef(props, 'tasks'),
+)
+
 const {
   hoverTarget,
   actionPosition,
@@ -39,10 +45,6 @@ const {
 
 const activeTaskId = computed(() => route.params.taskId as string | undefined)
 
-function tasksForSection(sectionId: string) {
-  return props.tasks.filter((task) => task.sectionId === sectionId)
-}
-
 function toggleSection(sectionId: string) {
   const next = new Set(expandedSections.value)
   if (next.has(sectionId)) {
@@ -54,6 +56,8 @@ function toggleSection(sectionId: string) {
 }
 
 function isExpanded(sectionId: string) {
+  if (isSearching.value) return true
+
   return expandedSections.value.has(sectionId)
 }
 
@@ -84,15 +88,19 @@ function onFloatDelete() {
   <aside class="sidebar">
     <div class="sidebar-panel">
       <DocsSidebarToolbar
+        v-model:query="query"
         @create-section="emit('create-section')"
         @create-task="emit('create-task')"
       />
       <nav class="sidebar-nav" @scroll="hideFloatActionsNow">
+        <p v-if="isSearching && filteredSections.length === 0" class="search-empty">
+          No sections or tasks match your search.
+        </p>
         <DocsSidebarSection
-          v-for="section in sections"
+          v-for="section in filteredSections"
           :key="section.id"
           :section="section"
-          :tasks="tasksForSection(section.id)"
+          :tasks="filteredTasksForSection(section)"
           :expanded="isExpanded(section.id)"
           :active-task-id="activeTaskId"
           @toggle="toggleSection(section.id)"
@@ -142,5 +150,12 @@ function onFloatDelete() {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.search-empty {
+  margin: 8px 4px 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }
 </style>
