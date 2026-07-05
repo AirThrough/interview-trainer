@@ -17,5 +17,15 @@ export {
 } from './tasks-api'
 export type { CreateTaskPayload, UpdateTaskPayload } from './tasks-api'
 
+export {
+  addSessionAnswer,
+  completeSession,
+  createSession,
+  fetchSessionById,
+  fetchSessions,
+} from './sessions-api'
+export type { AddSessionAnswerPayload, CreateSessionPayload } from './sessions-api'
+
 export { initialSections } from './sections'
+export { initialSessions } from './sessions'
 export { initialTasks } from './tasks'
