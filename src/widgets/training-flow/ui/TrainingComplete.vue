@@ -41,6 +41,7 @@ const gradeOrder = ['perfect', 'good', 'meh', 'dont-know'] as const
   gap: 20px;
   width: 100%;
   max-width: 560px;
+  margin: 0 auto;
   padding: 28px;
   border-radius: 16px;
   background: var(--color-surface);

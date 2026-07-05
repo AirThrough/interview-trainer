@@ -69,8 +69,10 @@ onMounted(() => {
 .train-page {
   display: flex;
   flex: 1;
+  min-height: 0;
   justify-content: center;
-  padding: 40px;
+  align-items: flex-start;
+  padding: 24px 40px;
   overflow-y: auto;
 }
 </style>

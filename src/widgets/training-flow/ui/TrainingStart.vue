@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Session } from '@/entities/session'
+import type { Session, SessionGrade } from '@/entities/session'
 
 import { getGradeLabel } from '../model/useTrainingFlow'
 
@@ -13,6 +13,8 @@ const emit = defineEmits<{
   start: []
 }>()
 
+const gradeOrder: SessionGrade[] = ['perfect', 'good', 'meh', 'dont-know']
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     month: 'short',
@@ -25,6 +27,23 @@ function formatDate(value: string) {
 function sessionScore(session: Session) {
   const perfect = session.answers.filter((answer) => answer.grade === 'perfect').length
   return `${perfect}/${session.taskIds.length} perfect`
+}
+
+function sessionGradeCounts(session: Session) {
+  const counts: Record<SessionGrade, number> = {
+    perfect: 0,
+    good: 0,
+    meh: 0,
+    'dont-know': 0,
+  }
+
+  for (const answer of session.answers) {
+    counts[answer.grade] += 1
+  }
+
+  return gradeOrder
+    .filter((grade) => counts[grade] > 0)
+    .map((grade) => ({ grade, count: counts[grade] }))
 }
 </script>
 
@@ -56,12 +75,12 @@ function sessionScore(session: Session) {
           </div>
           <div class="history-grades">
             <span
-              v-for="answer in session.answers"
-              :key="answer.taskId"
+              v-for="item in sessionGradeCounts(session)"
+              :key="item.grade"
               class="grade-pill"
-              :data-grade="answer.grade"
+              :data-grade="item.grade"
             >
-              {{ getGradeLabel(answer.grade) }}
+              {{ getGradeLabel(item.grade) }} x{{ item.count }}
             </span>
           </div>
         </li>
@@ -77,6 +96,7 @@ function sessionScore(session: Session) {
   gap: 32px;
   width: 100%;
   max-width: 640px;
+  margin: 0 auto;
 }
 
 .start-hero {

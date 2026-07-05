@@ -75,9 +75,13 @@ const grades: { value: SessionGrade; label: string }[] = [
   gap: 20px;
   width: 100%;
   max-width: 720px;
+  max-height: min(100%, calc(100vh - 120px));
+  min-height: 0;
+  margin: 0 auto;
   padding: 28px;
   border-radius: 16px;
   background: var(--color-surface);
+  overflow-y: auto;
 }
 
 .card-header {
