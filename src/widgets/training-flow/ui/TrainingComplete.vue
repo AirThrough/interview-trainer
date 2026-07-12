@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getGradeLabel } from '../model/useTrainingFlow'
+import { getGradeLabel } from '@/entities/session'
 
 defineProps<{
   total: number

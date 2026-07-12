@@ -15,6 +15,7 @@ const { theme, toggleTheme } = useTheme()
     <div class="header-actions">
       <nav class="nav">
         <RouterLink to="/train" class="nav-link">Train</RouterLink>
+        <RouterLink to="/sessions" class="nav-link">Sessions</RouterLink>
         <RouterLink to="/docs" class="nav-link">Docs</RouterLink>
       </nav>
       <button

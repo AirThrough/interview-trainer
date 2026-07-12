@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import type { Session, SessionGrade } from '@/entities/session'
+import { RouterLink } from 'vue-router'
 
-import { getGradeLabel } from '../model/useTrainingFlow'
+import type { Session } from '@/entities/session'
+import {
+  formatSessionDate,
+  getGradeLabel,
+  sessionGradeCounts,
+  sessionScore,
+} from '@/entities/session'
 
 defineProps<{
   sessions: Session[]
@@ -12,39 +18,6 @@ defineProps<{
 const emit = defineEmits<{
   start: []
 }>()
-
-const gradeOrder: SessionGrade[] = ['perfect', 'good', 'meh', 'dont-know']
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(value))
-}
-
-function sessionScore(session: Session) {
-  const perfect = session.answers.filter((answer) => answer.grade === 'perfect').length
-  return `${perfect}/${session.taskIds.length} perfect`
-}
-
-function sessionGradeCounts(session: Session) {
-  const counts: Record<SessionGrade, number> = {
-    perfect: 0,
-    good: 0,
-    meh: 0,
-    'dont-know': 0,
-  }
-
-  for (const answer of session.answers) {
-    counts[answer.grade] += 1
-  }
-
-  return gradeOrder
-    .filter((grade) => counts[grade] > 0)
-    .map((grade) => ({ grade, count: counts[grade] }))
-}
 </script>
 
 <template>
@@ -66,23 +39,33 @@ function sessionGradeCounts(session: Session) {
     </div>
 
     <section v-if="sessions.length > 0" class="history">
-      <h2 class="history-title">Past sessions</h2>
+      <div class="history-header">
+        <h2 class="history-title">Past sessions</h2>
+        <RouterLink to="/sessions" class="history-all">View all</RouterLink>
+      </div>
       <ul class="history-list">
-        <li v-for="session in sessions" :key="session.id" class="history-item">
-          <div class="history-meta">
-            <span class="history-date">{{ formatDate(session.completedAt ?? session.startedAt) }}</span>
-            <span class="history-score">{{ sessionScore(session) }}</span>
-          </div>
-          <div class="history-grades">
-            <span
-              v-for="item in sessionGradeCounts(session)"
-              :key="item.grade"
-              class="grade-pill"
-              :data-grade="item.grade"
-            >
-              {{ getGradeLabel(item.grade) }} x{{ item.count }}
-            </span>
-          </div>
+        <li v-for="session in sessions.slice(0, 3)" :key="session.id">
+          <RouterLink
+            :to="{ name: 'sessions-detail', params: { sessionId: session.id } }"
+            class="history-item"
+          >
+            <div class="history-meta">
+              <span class="history-date">{{
+                formatSessionDate(session.completedAt ?? session.startedAt)
+              }}</span>
+              <span class="history-score">{{ sessionScore(session) }}</span>
+            </div>
+            <div class="history-grades">
+              <span
+                v-for="item in sessionGradeCounts(session)"
+                :key="item.grade"
+                class="grade-pill"
+                :data-grade="item.grade"
+              >
+                {{ getGradeLabel(item.grade) }} x{{ item.count }}
+              </span>
+            </div>
+          </RouterLink>
         </li>
       </ul>
     </section>
@@ -149,6 +132,13 @@ function sessionGradeCounts(session: Session) {
   gap: 12px;
 }
 
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .history-title {
   margin: 0;
   font-size: 0.75rem;
@@ -156,6 +146,17 @@ function sessionGradeCounts(session: Session) {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+}
+
+.history-all {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.history-all:hover {
+  text-decoration: underline;
 }
 
 .history-list {
@@ -168,9 +169,16 @@ function sessionGradeCounts(session: Session) {
 }
 
 .history-item {
+  display: block;
   padding: 14px 16px;
   border-radius: 12px;
   background: var(--color-surface);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.history-item:hover {
+  background: var(--color-surface-hover);
 }
 
 .history-meta {

@@ -2,22 +2,13 @@ import { computed, ref } from 'vue'
 
 import { useSectionsStore } from '@/entities/section'
 import type { Session, SessionGrade } from '@/entities/session'
-import { useSessionsStore } from '@/entities/session'
+import { getGradeLabel, useSessionsStore } from '@/entities/session'
 import { useTasksStore } from '@/entities/task'
 import { shuffle } from '@/shared/lib/shuffle'
 
 export type TrainingPhase = 'idle' | 'active' | 'complete'
 
-const GRADE_LABELS: Record<SessionGrade, string> = {
-  perfect: 'Perfect',
-  good: 'Good',
-  meh: 'Meh',
-  'dont-know': "Don't know",
-}
-
-export function getGradeLabel(grade: SessionGrade) {
-  return GRADE_LABELS[grade]
-}
+export { getGradeLabel }
 
 export function useTrainingFlow() {
   const tasksStore = useTasksStore()
